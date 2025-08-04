@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Yield Prediction</title>
+    <!-- Add Chart.js from a CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Your existing styles are great, just adding a spot for the chart */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0; padding: 20px 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 { color: #2c3e50; margin-bottom: 25px; }
+        form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        select, input[type="number"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .full-width { grid-column: 1 / -1; }
+        input[type="submit"] {
+            grid-column: 1 / -1; background-color: #27ae60; color: white;
+            padding: 15px; border: none; border-radius: 6px; cursor: pointer;
+            font-size: 16px; font-weight: bold; transition: background-color 0.3s;
+        }
+        input[type="submit"]:hover { background-color: #229954; }
+        .result {
+            margin-top: 30px; padding: 20px; background-color: #e8f6ef;
+            border-left: 5px solid #27ae60; border-radius: 6px;
+            font-size: 1.2em; font-weight: 500; text-align: left;
+        }
+        /* NEW: Styles for the chart container */
+        .chart-container {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Crop Yield Prediction</h1>
+        <form action="{% url 'predict' %}" method="post">
+            {% csrf_token %}
+            <!-- Your form inputs are the same -->
+            <select name="crop" required><option value="" disabled selected>Select Crop</option>{% for crop in crop_list %}<option value="{{ crop }}">{{ crop }}</option>{% endfor %}</select>
+            <select name="season" required><option value="" disabled selected>Select Season</option>{% for season in season_list %}<option value="{{ season }}">{{ season }}</option>{% endfor %}</select>
+            <select name="state" class="full-width" required><option value="" disabled selected>Select State</option>{% for state in state_list %}<option value="{{ state }}">{{ state }}</option>{% endfor %}</select>
+            <input type="number" name="rainfall" placeholder="Annual Rainfall (mm)" step="0.01" required>
+            <input type="number" name="fertilizer" placeholder="Fertilizer (kg/ha)" step="0.01" required>
+            <input type="number" name="pesticide" placeholder="Pesticide (kg/ha)" step="0.01" required>
+            <input type="submit" value="Predict Yield">
+        </form>
+
+        {% if prediction_text %}
+            <div class="result">
+                <p>{{ prediction_text }}</p>
+            </div>
+
+            <!-- NEW: Chart container and canvas -->
+            <div class="chart-container">
+                <h3>Feature Importance</h3>
+                <canvas id="featureImportanceChart"></canvas>
+            </div>
+
+            <!-- NEW: JavaScript to render the chart -->
+            <script>
+                const ctx = document.getElementById('featureImportanceChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: {{ chart_labels|safe }},
+                        datasets: [{
+                            label: 'Importance Score',
+                            data: {{ chart_data|safe }},
+                            backgroundColor: 'rgba(39, 174, 96, 0.6)',
+                            borderColor: 'rgba(39, 174, 96, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y', // Makes the bar chart horizontal
+                        scales: {
+                            x: {
+                                beginAtZero: true
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false // Hides the legend as it's self-explanatory
+                            }
+                        }
+                    }
+                });
+            </script>
+        {% endif %}
+    </div>
+</body>
+</html>
