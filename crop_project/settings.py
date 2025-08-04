@@ -25,7 +25,9 @@ SECRET_KEY = 'django-insecure-o6oxq(-n9#st3y=f%d)11fu7z)ap5%c01*63&pj7e470i6*02+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ['.onrender.com']
+
 
 
 # Application definition
